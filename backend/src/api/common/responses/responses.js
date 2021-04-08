@@ -6,6 +6,7 @@ exports.errorResponse = (res, error) => {
       })
   )
 }
+
 exports.unauthorizedResponse = (res, message) => {
   return (
       res.status(401).json({
@@ -13,6 +14,7 @@ exports.unauthorizedResponse = (res, message) => {
       })
   )
 }
+
 exports.successResponse = (res, message) => {
   return (
       res.status(200).json(message)
@@ -25,5 +27,28 @@ exports.badRequest = (res, message) => {
   )
 }
 
+exports.createdResponse = (res, userInfos) => {
+  return (
+      res.status(201).json(userInfos)
+  )
+}
+
+const responseJSON = (responseObj) => {
+  const { value = [], message = '', attributes = {} } = responseObj;
+
+  return {
+      value: value,
+      message: message,
+      ...attributes
+ }
+}
+
+exports.response = (res, responseObj) => {
+  const status = responseObj.status ? responseObj.status : 200; 
+
+  return (
+      res.status(status).json(responseJSON(responseObj))
+  )
+}
 
 
