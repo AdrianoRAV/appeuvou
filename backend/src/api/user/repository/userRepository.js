@@ -5,6 +5,8 @@ const SQL_SELECT_QUERY = `SELECT Users.id, Users.name, Users.email, Users.crm, U
 FROM Users 
 INNER JOIN UsersType ON Users.position_id = UsersType.id`;
 
+const SQL_INSERT_QUERY = `INSERT INTO Users (name, email, password, position_id, cep, endereco, cpf, dataNascimento, telefone, celular, active) VALUES (@name, @email, @password, (SELECT id FROM UsersType WHERE name=@position), @cep, @endereco, @cpf, @dataNascimento, @telefone, @celular, @active)`;
+
 const SQL_SELECT_USER = `${SQL_SELECT_QUERY} and Users.id=@id`;
 
 
@@ -23,4 +25,43 @@ exports.getUser = async (id) => {
     return null;
   }
 };
+
+exports.createUser = async (
+  name,
+  email,
+  password,
+  position,
+  cep,
+  endereco,
+  cpf,
+  dataNascimento,
+  telefone,
+  celular,
+  active = 0
+) => {
+  try {
+    const dbClient = await getConnection();
+    const request = dbClient.request();
+
+    request.input("name", sql.VarChar, name);
+    request.input("email", sql.VarChar, email);
+    request.input("password", sql.VarChar, password);
+    request.input("position", sql.VarChar, position);
+    request.input("cep", sql.VarChar, cep);
+    request.input("endereco", sql.VarChar, endereco);
+    request.input("cpf", sql.VarChar, cpf);
+    request.input("dataNascimento", sql.Date, dataNascimento);
+    request.input("telefone", sql.VarChar, telefone);
+    request.input("celular", sql.VarChar, celular);
+    request.input("active", sql.VarChar, active);
+
+    const result = await request.query(SQL_INSERT_QUERY);
+    return isSuccessfulCommand(result.rowsAffected);
+
+  } catch (error) {
+    console.log(error);
+    return null;
+  }
+};
+
 
