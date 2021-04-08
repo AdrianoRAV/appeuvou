@@ -100,3 +100,73 @@ exports.create_user = async (req, res, next) => {
     return next(new Error("Falha ao criar o Usuário!"));
   }
 };
+
+exports.update_user = async (req, res, next) => {
+  try {
+    if (req.body.crf || req.body.crm || req.body.cpf || req.body.position) {
+      return next(new BadRequestError("Esse atributo não pode ser alterado"));
+    }
+    if (
+      !req.body.name &&
+      !req.body.email &&
+      !req.body.password &&
+      !req.body.especialidade &&
+      !req.body.cep &&
+      !req.body.endereco &&
+      !req.body.dataNascimento &&
+      !req.body.telefone &&
+      !req.body.celular
+    ) {
+      return next(
+        new BadRequestError(
+          "Preencher o parâmetro name ou email ou password ou especialidade ou cep ou endereco ou dataNascimento ou telefone ou celular para executar a operação."
+        )
+      );
+    }
+
+    if (req.body.name) {
+      await configureCheckForName(req);
+    }
+
+    if (req.body.email) {
+      await configureCheckForEmail(req);
+    }
+
+    const validationError = await getErrosFromRequestValidation(req);
+    if (validationError) {
+      return next(validationError);
+    }
+
+    const user = await userRepository.getUser(req.params.id);
+
+    if (user.length === 0)
+      return responses.response(res, {
+        status: 401,
+        message: "Usuário não encontrado",
+      });
+
+    const updateUser = await userRepository.updateUser(
+      req.params.id,
+      req.body.name,
+      req.body.email,
+      req.body.password,
+      req.body.especialidade,
+      req.body.cep,
+      req.body.endereco,
+      req.body.dataNascimento,
+      req.body.telefone,
+      req.body.celular
+    );
+    if (updateUser) {
+      return responses.response(res, {
+        status: 200,
+        message: "Usuário editado com sucesso!",
+      });
+    }
+
+    return next(new Error("Falha ao editar o Usuário"));
+  } catch (err) {
+    console.log(err);
+    return next(new Error("Falha ao editar o Usuário"));
+  }
+};
