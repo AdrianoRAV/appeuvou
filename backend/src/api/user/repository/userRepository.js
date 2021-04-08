@@ -65,3 +65,65 @@ exports.createUser = async (
 };
 
 
+exports.updateUser = async (
+  id,
+  name,
+  email,
+  password,
+  cep,
+  endereco,
+  dataNascimento,
+  telefone,
+  celular
+) => {
+  try {
+    const dbClient = await getConnection();
+    const request = dbClient.request();
+    request.input("id", sql.UniqueIdentifier, id);
+
+    let setStatementCollumns = [];
+
+    if (name) {
+      setStatementCollumns.push("name=@name");
+      request.input("name", sql.VarChar, name);
+    }
+    if (email) {
+      setStatementCollumns.push("email=@email");
+      request.input("email", sql.VarChar, email);
+    }
+    if (password) {
+      setStatementCollumns.push("password=@password");
+      request.input("password", sql.VarChar, password);
+    }
+    if (cep) {
+        setStatementCollumns.push("cep=@cep");
+        request.input("cep", sql.VarChar, cep);
+    }
+    if (endereco) {
+        setStatementCollumns.push("endereco=@endereco");
+        request.input("endereco", sql.VarChar, endereco);
+    }
+    if (dataNascimento) {
+        setStatementCollumns.push("dataNascimento=@dataNascimento");
+        request.input("dataNascimento", sql.Date, dataNascimento);
+    }
+    if (telefone) {
+        setStatementCollumns.push("telefone=@telefone");
+        request.input("telefone", sql.VarChar, telefone);
+    }
+    if (celular) {
+        setStatementCollumns.push("celular=@celular");
+        request.input("celular", sql.VarChar, celular);
+    }
+    const sql_query = `UPDATE Users SET ${setStatementCollumns.join(
+      ","
+    )} WHERE id=@id`;
+
+    const result = await request.query(sql_query);
+    return isSuccessfulCommand(result.rowsAffected);
+  } catch (error) {
+    return null;
+  }
+};
+
+
