@@ -1,25 +1,52 @@
 const { check } = require("express-validator");
 const userRepository = require("../repository/userRepository");
 const responses = require("../../common/responses/responses");
-
+const { BadRequestError } = require("../../shared/errors/requestError");
 const {
   getErrosFromRequestValidation,
 } = require("../../shared/errors/errorBuilder");
 
 const UserModel = require("./userModel");
 
+async function configureCheckForName(req) {
+  await check("name")
+    .isString()
+    .withMessage("Parâmetro name mal formatado")
+    .notEmpty()
+    .withMessage("Parâmetro name não preenchido")
+    .isLength({ max: 100 })
+    .withMessage("Parâmetro name ultrapassou o limite de 100 caracteres")
+    .run(req);
+}
 
+async function configureCheckForEmail(req) {
+  await check("email")
+    .isEmail()
+    .withMessage("Parâmetro email mal formatado")
+    .notEmpty()
+    .withMessage("Parâmetro email não preenchido")
+    .isLength({ max: 100 })
+    .withMessage("Parâmetro email ultrapassou o limite de 100 caracteres")
+    .run(req);
+}
 
+async function configureCheckForPosition(req) {
+  await check("position")
+    .isString()
+    .withMessage("Parâmetro position mal formatado")
+    .notEmpty()
+    .withMessage("Parâmetro position não preenchido")
+    .run(req);
+}
 
-exports.get_user = async (req, res) => {
+exports.get_all_users = async (req, res) => {
   try {
-    const userSearch = await userRepository.getUser(req.params.id);
-    if (userSearch) {
-      return responses.response(res, {
-        status: 200,
-        message: "Sucesso ao trazer Usuário!",
-        value: userSearch
-          ? userSearch.map(
+    const users = await userRepository.getAllUsers();
+    return responses.response(res, {
+      status: 200,
+      message: "Sucesso ao pegar os Usuários!",
+      value: users
+        ? users.map(
             (user) =>
               new UserModel(
                 user.id,
@@ -36,6 +63,41 @@ exports.get_user = async (req, res) => {
                 user.active
               )
           )
+        : users,
+    });
+  } catch (err) {
+    return responses.response(res, {
+      status: 500,
+      message: "Falha ao pegar os Usuários!",
+    });
+  }
+};
+
+exports.get_user = async (req, res) => {
+  try {
+    const userSearch = await userRepository.getUser(req.params.id);
+    if (userSearch) {
+      return responses.response(res, {
+        status: 200,
+        message: "Sucesso ao trazer Usuário!",
+        value: userSearch
+          ? userSearch.map(
+              (user) =>
+                new UserModel(
+                  user.id,
+                  user.name,
+                  user.email,
+                  user.password,
+                  user.cep,
+                  user.cpf,
+                  user.endereco,
+                  user.dataNascimento,
+                  user.telefone,
+                  user.celular,
+                  user.position,
+                  user.active
+                )
+            )
           : null,
       });
     } else {
@@ -168,5 +230,20 @@ exports.update_user = async (req, res, next) => {
   } catch (err) {
     console.log(err);
     return next(new Error("Falha ao editar o Usuário"));
+  }
+};
+
+exports.delete_user = async (req, res, next) => {
+  try {
+    const deleteUser = await userRepository.deleteUser(req.params.id);
+    if (deleteUser) {
+      return responses.response(res, {
+        status: 200,
+        message: "Usuário deletado com sucesso!",
+      });
+    }
+    return next(new Error("Falha ao deletar o Usuário"));
+  } catch (err) {
+    return next(new Error("Falha ao deletar o Usuário"));
   }
 };

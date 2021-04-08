@@ -7,9 +7,22 @@ INNER JOIN UsersType ON Users.position_id = UsersType.id`;
 
 const SQL_INSERT_QUERY = `INSERT INTO Users (name, email, password, position_id, cep, endereco, cpf, dataNascimento, telefone, celular, active) VALUES (@name, @email, @password, (SELECT id FROM UsersType WHERE name=@position), @cep, @endereco, @cpf, @dataNascimento, @telefone, @celular, @active)`;
 
+const SQL_DELETE_QUERY = `DELETE FROM Users WHERE id=@id`;
+
 const SQL_SELECT_USER = `${SQL_SELECT_QUERY} and Users.id=@id`;
 
+exports.getAllUsers = async () => {
+  try {
+    const dbClient = await getConnection();
+    const request = dbClient.request();
 
+    const result = await request.query(SQL_SELECT_QUERY);
+    return result.recordsets[0];
+  } catch (error) {
+    console.log(error);
+    return null;
+  }
+};
 
 exports.getUser = async (id) => {
   try {
@@ -25,6 +38,22 @@ exports.getUser = async (id) => {
     return null;
   }
 };
+
+exports.getUserByEmail = async (userEmail) => {
+  try {
+    const dbClient = await getConnection();
+    const request = dbClient.request();
+
+    const result = await request.query(
+      `SELECT * FROM Users WHERE email = '${userEmail}'`
+    );
+    return result.recordset[0];
+  } catch (error) {
+    console.log(error);
+    return null;
+  }
+};
+
 
 exports.createUser = async (
   name,
@@ -63,7 +92,6 @@ exports.createUser = async (
     return null;
   }
 };
-
 
 exports.updateUser = async (
   id,
@@ -126,4 +154,18 @@ exports.updateUser = async (
   }
 };
 
+exports.deleteUser = async (id) => {
+  try {
+    const dbClient = await getConnection();
+    const request = dbClient.request();
+
+    request.input("id", sql.UniqueIdentifier, id);
+
+    const result = await request.query(SQL_DELETE_QUERY);
+    return isSuccessfulCommand(result.rowsAffected);
+  } catch (error) {
+    console.log(error);
+    return null;
+  }
+};
 
