@@ -5,8 +5,13 @@ const userController = require('./controllers/userControllers');
 
 
 router.get('/:id', userController.get_user );
+
+router.get('/', userController.get_all_users);
+
 router.post('/', userController.create_user);
+
 router.patch('/:id', userController.update_user);
 
-module.exports = router;
+router.delete('/:id', userController.delete_user);
 
+module.exports = router;
