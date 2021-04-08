@@ -5,8 +5,8 @@ const userController = require('./controllers/userControllers');
 
 
 router.get('/:id', userController.get_user );
-
 router.post('/', userController.create_user);
+router.patch('/:id', userController.update_user);
 
 module.exports = router;
 
