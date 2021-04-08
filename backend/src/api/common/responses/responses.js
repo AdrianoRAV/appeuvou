@@ -13,5 +13,17 @@ exports.unauthorizedResponse = (res, message) => {
       })
   )
 }
+exports.successResponse = (res, message) => {
+  return (
+      res.status(200).json(message)
+      )
+}
+
+exports.badRequest = (res, message) => {
+  return (
+      res.status(400).json(message)
+  )
+}
+
 
 
